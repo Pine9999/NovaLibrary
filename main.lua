@@ -1,4 +1,4 @@
--- [[ NOVA UI LIBRARY: SINGULARITY V3 FIX ]] --
+-- [[ NOVA UI LIBRARY: SINGULARITY V4 ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Player = game.Players.LocalPlayer
@@ -7,7 +7,7 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local Nova = {}
 Nova.__index = Nova
 
--- Easing: Starts fast, slows down
+-- Easing: Starts fast, slows down (Cubic Out)
 local EasingInfo = TweenInfo.new(0.4, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
 
 local function Animate(obj, goal)
@@ -23,7 +23,7 @@ function Nova.new(title)
 	
 	-- Root Gui
 	self.ScreenGui = Instance.new("ScreenGui")
-	self.ScreenGui.Name = "Nova_Fixed"
+	self.ScreenGui.Name = "Nova_V4"
 	self.ScreenGui.Parent = PlayerGui
 	self.ScreenGui.ResetOnSpawn = false
 	self.ScreenGui.DisplayOrder = 100
@@ -32,7 +32,7 @@ function Nova.new(title)
 	self.OpenBtn = Instance.new("TextButton")
 	self.OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 	self.OpenBtn.Position = UDim2.new(0, 20, 0.5, -25)
-	self.OpenBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 60)
+	self.OpenBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 65)
 	self.OpenBtn.Text = "★"
 	self.OpenBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
 	self.OpenBtn.TextSize = 25
@@ -56,7 +56,7 @@ function Nova.new(title)
 
 	-- 3D Lighting Effect
 	local light = Instance.new("UIGradient")
-	light.Color = ColorSequence.new(Color3.fromRGB(50, 45, 85), Color3.fromRGB(15, 12, 25))
+	light.Color = ColorSequence.new(Color3.fromRGB(55, 50, 95), Color3.fromRGB(15, 12, 28))
 	light.Rotation = 45
 	light.Parent = self.MainFrame
 
@@ -83,7 +83,7 @@ function Nova.new(title)
 	xBtn.Position = UDim2.new(1, -35, 0, 2)
 	xBtn.BackgroundTransparency = 1
 	xBtn.Text = "X"
-	xBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+	xBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 	xBtn.Font = Enum.Font.ArialBold
 	xBtn.TextSize = 18
 	xBtn.Parent = topBar
@@ -124,10 +124,34 @@ function Nova.new(title)
 	return self
 end
 
+function Nova:Notify(msg, dur)
+    local nFrame = Instance.new("Frame")
+    nFrame.Size = UDim2.new(0, 180, 0, 35)
+    nFrame.Position = UDim2.new(1, 20, 1, -50)
+    nFrame.BackgroundColor3 = Color3.fromRGB(35, 30, 60)
+    nFrame.Parent = self.ScreenGui
+    Instance.new("UICorner", nFrame).CornerRadius = UDim.new(0, 6)
+    
+    local txt = Instance.new("TextLabel")
+    txt.Size = UDim2.new(1, 0, 1, 0)
+    txt.BackgroundTransparency = 1
+    txt.Text = msg
+    txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+    txt.Font = Enum.Font.Arial
+    txt.TextSize = 12
+    txt.Parent = nFrame
+    
+    Animate(nFrame, {Position = UDim2.new(1, -200, 1, -50)})
+    task.delay(dur or 3, function()
+        local tw = Animate(nFrame, {Position = UDim2.new(1, 20, 1, -50)})
+        tw.Completed:Connect(function() nFrame:Destroy() end)
+    end)
+end
+
 function Nova:CreateTab(name)
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.Size = UDim2.new(0, 85, 1, 0)
-	tabBtn.BackgroundColor3 = Color3.fromRGB(40, 35, 70)
+	tabBtn.BackgroundColor3 = Color3.fromRGB(40, 35, 75)
 	tabBtn.Text = name
 	tabBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
 	tabBtn.Font = Enum.Font.Arial
@@ -147,7 +171,7 @@ function Nova:CreateTab(name)
 	tabBtn.MouseButton1Click:Connect(function()
 		for _, t in pairs(self.Tabs) do
 			t.Page.Visible = (t.Page == page)
-			t.Button.BackgroundColor3 = (t.Page == page) and Color3.fromRGB(60, 55, 100) or Color3.fromRGB(40, 35, 70)
+			t.Button.BackgroundColor3 = (t.Page == page) and Color3.fromRGB(65, 60, 110) or Color3.fromRGB(40, 35, 75)
 		end
 	end)
 	return page
