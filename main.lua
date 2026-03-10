@@ -1,4 +1,4 @@
--- [[ NOVA UI LIBRARY: SINGULARITY V2 ]] --
+-- [[ NOVA UI LIBRARY: SINGULARITY V3 FIX ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Player = game.Players.LocalPlayer
@@ -7,7 +7,7 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local Nova = {}
 Nova.__index = Nova
 
--- Easing: Fast start, slow finish (Cubic Out)
+-- Easing: Starts fast, slows down
 local EasingInfo = TweenInfo.new(0.4, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
 
 local function Animate(obj, goal)
@@ -21,16 +21,15 @@ function Nova.new(title)
 	self.Tabs = {}
 	self.Toggled = false
 	
-	-- Root Gui (Force to Top)
+	-- Root Gui
 	self.ScreenGui = Instance.new("ScreenGui")
-	self.ScreenGui.Name = "Nova_V2"
+	self.ScreenGui.Name = "Nova_Fixed"
 	self.ScreenGui.Parent = PlayerGui
 	self.ScreenGui.ResetOnSpawn = false
-	self.ScreenGui.DisplayOrder = 100 -- Higher than standard game UI
+	self.ScreenGui.DisplayOrder = 100
 
 	-- Mobile Toggle (The Star)
 	self.OpenBtn = Instance.new("TextButton")
-	self.OpenBtn.Name = "StarToggle"
 	self.OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 	self.OpenBtn.Position = UDim2.new(0, 20, 0.5, -25)
 	self.OpenBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 60)
@@ -44,9 +43,8 @@ function Nova.new(title)
 
 	-- Main Window
 	self.MainFrame = Instance.new("Frame")
-	self.MainFrame.Name = "MainWindow"
 	self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- Starts at zero for animation
+	self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
 	self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	self.MainFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 35)
 	self.MainFrame.BorderSizePixel = 0
@@ -56,17 +54,16 @@ function Nova.new(title)
 	self.MainFrame.Parent = self.ScreenGui
 	Instance.new("UICorner", self.MainFrame).CornerRadius = UDim.new(0, 10)
 
-	-- 3D Gradient Lighting
+	-- 3D Lighting Effect
 	local light = Instance.new("UIGradient")
-	light.Color = ColorSequence.new(Color3.fromRGB(50, 40, 80), Color3.fromRGB(15, 12, 25))
+	light.Color = ColorSequence.new(Color3.fromRGB(50, 45, 85), Color3.fromRGB(15, 12, 25))
 	light.Rotation = 45
 	light.Parent = self.MainFrame
 
-	-- Top Bar (Drag Area)
+	-- Top Bar
 	local topBar = Instance.new("Frame")
 	topBar.Size = UDim2.new(1, 0, 0, 35)
 	topBar.BackgroundTransparency = 1
-	topBar.ZIndex = 101
 	topBar.Parent = self.MainFrame
 
 	local titleLabel = Instance.new("TextLabel")
@@ -74,14 +71,13 @@ function Nova.new(title)
 	titleLabel.Position = UDim2.new(0, 15, 0, 0)
 	titleLabel.BackgroundTransparency = 1
 	titleLabel.Text = title:upper()
-	titleLabel.TextColor3 = Color3.white
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	titleLabel.Font = Enum.Font.ArialBold
 	titleLabel.TextSize = 14
 	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-	titleLabel.ZIndex = 102
 	titleLabel.Parent = topBar
 
-	-- X Close Button
+	-- X Button
 	local xBtn = Instance.new("TextButton")
 	xBtn.Size = UDim2.new(0, 30, 0, 30)
 	xBtn.Position = UDim2.new(1, -35, 0, 2)
@@ -90,33 +86,25 @@ function Nova.new(title)
 	xBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 	xBtn.Font = Enum.Font.ArialBold
 	xBtn.TextSize = 18
-	xBtn.ZIndex = 102
 	xBtn.Parent = topBar
 
-	-- Horizontal Tab Bar
+	-- Tab Bar
 	self.TabBar = Instance.new("Frame")
 	self.TabBar.Size = UDim2.new(1, -20, 0, 30)
 	self.TabBar.Position = UDim2.new(0, 10, 0, 40)
 	self.TabBar.BackgroundTransparency = 1
-	self.TabBar.ZIndex = 101
 	self.TabBar.Parent = self.MainFrame
-	
-	local tabLayout = Instance.new("UIListLayout")
-	tabLayout.FillDirection = Enum.FillDirection.Horizontal
-	tabLayout.Padding = UDim.new(0, 5)
-	tabLayout.Parent = self.TabBar
+	Instance.new("UIListLayout", self.TabBar).FillDirection = Enum.FillDirection.Horizontal
 
-	-- Page Container
+	-- Content
 	self.ContentFrame = Instance.new("Frame")
 	self.ContentFrame.Size = UDim2.new(1, -20, 1, -85)
 	self.ContentFrame.Position = UDim2.new(0, 10, 0, 75)
 	self.ContentFrame.BackgroundTransparency = 1
-	self.ContentFrame.ZIndex = 101
 	self.ContentFrame.Parent = self.MainFrame
 
 	self:_MakeDraggable(topBar)
 
-	-- Open/Close Logic (Improved)
 	local function toggleUI()
 		self.Toggled = not self.Toggled
 		if self.Toggled then
@@ -143,7 +131,6 @@ function Nova:CreateTab(name)
 	tabBtn.Text = name
 	tabBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
 	tabBtn.Font = Enum.Font.Arial
-	tabBtn.ZIndex = 102
 	tabBtn.Parent = self.TabBar
 	Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 5)
 
@@ -152,12 +139,8 @@ function Nova:CreateTab(name)
 	page.BackgroundTransparency = 1
 	page.ScrollBarThickness = 0
 	page.Visible = (#self.Tabs == 0)
-	page.ZIndex = 102
 	page.Parent = self.ContentFrame
-	
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 6)
-	layout.Parent = page
+	Instance.new("UIListLayout", page).Padding = UDim.new(0, 6)
 
 	table.insert(self.Tabs, {Button = tabBtn, Page = page})
 
@@ -175,10 +158,9 @@ function Nova:AddButton(parent, text, callback)
 	btn.Size = UDim2.new(1, 0, 0, 36)
 	btn.BackgroundColor3 = Color3.fromRGB(30, 25, 55)
 	btn.Text = text
-	btn.TextColor3 = Color3.white
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.Font = Enum.Font.Arial
 	btn.TextSize = 13
-	btn.ZIndex = 103
 	btn.Parent = parent
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 	
