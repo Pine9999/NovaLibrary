@@ -1,61 +1,111 @@
--- NOVA Library 1.0 Betq
-
 local Nova = {}
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+
+-- 1. Setup Theme
+local Theme = {
+    Background = Color3.fromRGB(20, 15, 35), -- Dark Bluish Purple
+    Accent = Color3.fromRGB(110, 80, 255),    -- Bright Purple
+    Text = Color3.fromRGB(240, 240, 255),    -- Off-white Blue
+    CloseButton = Color3.fromRGB(255, 80, 80) -- Subtle Red for Close
+}
 
 function Nova:CreateWindow(Title)
-    -- Setup the window
+    -- Setup the window handler
     local windowHandler = Instance.new("ScreenGui")
     windowHandler.Name = "Nova"
-    -- Attempt CoreGui, fallback to PlayerGui for Studio testing
-    local success, err = pcall(function() windowHandler.Parent = game:GetService("CoreGui") end)
-    if not success then windowHandler.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
+    
+    local success, _ = pcall(function() 
+        windowHandler.Parent = game:GetService("CoreGui") 
+    end)
+    if not success then 
+        windowHandler.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") 
+    end
 
-    -- Main Window Frame
+    -- The Main Window
     local window = Instance.new("Frame")
     window.Name = "NovaWindow"
-    window.Size = UDim2.new(0, 550, 0, 350) -- Standard Rayfield size
-    window.Position = UDim2.new(0.5, -275, 0.5, -175)
-    window.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    window.Size = UDim2.new(0, 450, 0, 300)
+    window.Position = UDim2.new(0.5, -225, 0.5, -150)
+    window.BackgroundColor3 = Theme.Background
+    window.BorderSizePixel = 0
     window.Active = true
     window.Parent = windowHandler
 
-    -- UI Corner (Makes it look modern)
+    -- Round the corners
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = window
 
-    -- DRAGGING LOGIC (Optimized)
+    -- Title Bar / Top Label
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -40, 0, 35)
+    titleLabel.Position = UDim2.new(0, 15, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = Title
+    titleLabel.TextColor3 = Theme.Text
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 14
+    titleLabel.Parent = window
+
+    -- 2. CLOSE BUTTON (Using Google/Material Icons)
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseBtn"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundTransparency = 1
+    closeButton.TextColor3 = Theme.Text
+    closeButton.Text = "close" -- The Google Icon name
+    closeButton.Font = Enum.Font.MaterialSymbolsRounded -- Use the Google Font
+    closeButton.TextSize = 24
+    closeButton.Parent = window
+
+    closeButton.MouseButton1Click:Connect(function()
+        windowHandler:Destroy() -- Deletes the entire UI
+    end)
+
+    -- 3. YOUR DRAGGING LOGIC (With Tween Change)
+    local gui = window
     local dragging, dragInput, dragStart, startPos
 
-    window.InputBegan:Connect(function(input)
+    local function update(input)
+        local delta = input.Position - dragStart
+        gui:TweenPosition(
+            UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y), 
+            Enum.EasingDirection.InOut, 
+            Enum.EasingStyle.Sine, 
+            0.04, 
+            true
+        )
+    end
+
+    gui.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = window.Position
+            startPos = gui.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
     end)
 
-    -- Use InputEnded to stop dragging globally
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            -- Your Tween Logic
-            window:TweenPosition(
-                UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),
-                "Out", "Quint", 0.1, true -- Slightly longer 'Quint' feels even smoother
-            )
+        if input == dragInput and dragging then
+            update(input)
         end
     end)
-    
-    return window -- Return the frame so you can add Tabs to it later
+
+    return window
 end
 
 return Nova
